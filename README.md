@@ -4,7 +4,19 @@ weatherbot
 kitn-based IRC bot for summarizing weather forecasts
 
 
-setup
+setup (module in an existing kitn bot)
+----------
+
+download just the kitn module file into your bot's directory:
+```
+wget https://raw.githubusercontent.com/relsqui/weatherbot/master/kitnweather.py
+```
+get a free API key from weather underground: http://www.wunderground.com/weather/api/
+
+add a [weather] section to your bot's config, containing at least an api_key key with your API key as the value. because of this step, you'll have to reload the config file; restarting the bot will do that if you don't have another way. this is a good time to add kitnweather to your autoloaded modules list if you want to. otherwise, tell your bot to `load kitnweather` when it gets back.
+
+
+setup (standalone bot)
 ----------
 
 install dependencies:
