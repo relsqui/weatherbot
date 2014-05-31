@@ -24,6 +24,12 @@ defaults = {
         "api_key": 0
 }
 
+def time_name(time):
+    if time == "12:00 AM":
+        return "midnight"
+    if time == "12:00 PM":
+        return "noon"
+    return
 
 class WeatherModule(Module):
     def __init__(self, *args, **kwargs):
@@ -116,15 +122,11 @@ class WeatherModule(Module):
 
             condition = forecast['condition'].lower()
             next_condition = next_forecast['condition'].lower()
-            next_time = next_forecast['FCTTIME']['civil']
+            next_time = time_name(next_forecast['FCTTIME']['civil'])
             if condition != next_condition:
-                if next_time == "12:00 PM":
-                    next_time = "noon"
-                if next_time == "12:00 AM":
-                    next_time = "midnight"
                 conditions.append("{} until {}".format(condition, next_time))
 
-            time = forecast['FCTTIME']['civil']
+            time = time_name(forecast['FCTTIME']['civil'])
             temperature = forecast['temp']['english']
             if temperature not in temperatures:
                 temperatures[temperature] = time
