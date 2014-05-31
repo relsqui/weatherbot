@@ -52,6 +52,7 @@ class WeatherModule(Module):
                 message = message.split(None, 1)[1]
             elif message.startswith("!rollcall"):
                 client.reply(recipient, actor, "Meow!");
+                return
             elif message.startswith("!weather"):
                 pass
             else:
@@ -59,7 +60,7 @@ class WeatherModule(Module):
                 return
 
         if message.startswith("help"):
-            help_msg = self.help_msg.format(self.forecast_length, self.default_location)
+            help_msg = "I'm very simple! Just say !weather to get a summary of the {}-hour forecast for {}, or !weather <location> for another city, ZIP, etc.".format(self.forecast_length, self.default_location_name)
             client.reply(recipient, actor, help_msg)
             return
 
