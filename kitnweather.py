@@ -108,7 +108,8 @@ class WeatherModule(Module):
             return "I don't know which one you mean. Maybe one of these? " + choice_string
         elif parsed_json.has_key("hourly_forecast"):
             next_forecast = parsed_json['hourly_forecast'][0]
-            location = parsed_json['current_observation']['display_location']['full']
+            if url_location != self.default_location_ID:
+                location = parsed_json['current_observation']['display_location']['full']
         else:
             return "Sorry, I don't know where that is."
         self.forecast_length = min(self.forecast_length, len(parsed_json['hourly_forecast']) - 2)
