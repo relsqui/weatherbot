@@ -1,0 +1,34 @@
+[server]
+# if you want ssl, uncomment these lines
+;ssl = True
+;port = 6697
+
+# where do you want to connect to?
+host = my.irc.server
+
+# who do you want to connect as?
+nick = weatherbot
+password = supersecurepassword
+username = weatherbot
+realname = Mx. Weatherbot
+
+[modules]
+# you can leave this part alone
+kitnirc.contrib.healthcheck = 1
+kitnirc.contrib.admintools = 2
+kitnirc.contrib.autojoin = 3
+kitnweather = 4
+
+[admins]
+# change this to your nick!user@host (and others, if you like)
+mynick!notroot@myhost.com
+
+[channels]
+# change this to a list of channels to autojoin, if any
+weatherchannel
+
+[weather]
+default_location_ID = 94709
+default_location_name = Berkeley, CA
+forecast_length = 12 #hours
+api_key = 0 # your wunderground.com API key goes here!
