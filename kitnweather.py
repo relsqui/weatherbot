@@ -7,7 +7,7 @@ from xml.dom.minidom import parseString
 from datetime import datetime, timedelta
 from math import floor
 from random import randrange
-from ConfigParser import DuplicateSectionError
+from ConfigParser import DuplicateSectionError, NoOptionError
 from logging import getLogger
 
 from kitnirc.modular import Module
@@ -34,14 +34,12 @@ class WeatherModule(Module):
         except DuplicateSectionError:
             pass
 
-        self.default_location_ID = config.get("weather", "default_location_ID",
-                                              defaults)
-        self.default_location_name = config.get("weather",
-                                                "default_location_name",
-                                                defaults)
-        self.forecast_length = config.get("weather", "forecast_length",
-                                          defaults)
-        self.api_key = config.get("weather", "api_key", defaults);
+        for key in ["default_location_ID", "default_location_name",
+                    "forecast_length", "api_key"]:
+            try:
+                setattr(self, key, config.get("weather", key))
+            except NoOptionError:
+                setattr(self, key, defaults[key])
 
 
     @Module.handle('PRIVMSG')
@@ -60,8 +58,7 @@ class WeatherModule(Module):
                 return
 
         if message.startswith("help"):
-            help_msg = "I'm very simple! Just say !weather to get a summary of the {}-hour forecast for {}, or !weather <location> for another city, ZIP, etc.".format(self.forecast_length, self.default_location_name)
-            client.reply(recipient, actor, help_msg)
+            client.reply(recipient, actor, "I'm very simple! Just say !weather to get a summary of the {}-hour forecast for {}, or !weather <location> for another city, ZIP, etc.".format(self.forecast_length, self.default_location_name))
             return
 
         if message.startswith("!weather"):
@@ -82,8 +79,10 @@ class WeatherModule(Module):
         else:
             url_location = self.default_location_ID
             location = self.default_location_name
+        url = "http://api.wunderground.com/api/{}/conditions/hourly/q/{}.json".format(self.api_key, url_location)
         _log.info("Looking up the weather in {} ({}).".format(url_location, location))
-        f = urlopen("http://api.wunderground.com/api/{}/conditions/hourly/q/{}.json".format(self.api_key, url_location))
+        _log.debug("Query URL is {}".format(url))
+        f = urlopen(url)
         json_string = f.read()
         f.close
         parsed_json = loads(json_string)
