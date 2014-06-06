@@ -107,7 +107,10 @@ class WeatherModule(Module):
             choice_string = " / ".join(choices)
             return "I don't know which one you mean. Maybe one of these? " + choice_string
         elif parsed_json.has_key("hourly_forecast"):
-            next_forecast = parsed_json['hourly_forecast'][0]
+            try:
+                next_forecast = parsed_json['hourly_forecast'][0]
+            except ValueError:
+                return "Hmm, I didn't get well-formed data from my API. Please give me a few minutes and try again. Sorry about that."
             if url_location != self.default_location_ID:
                 location = parsed_json['current_observation']['display_location']['full']
         else:
