@@ -17,7 +17,7 @@ _log = getLogger(__name__)
 
 defaults = {
         "default_location_ID": "94709",
-        "default_location_name": "Berkeley, CA",
+        "default_location_name": "home",
         "forecast_length": 12,
         # this won't work if it remains default, but it shouldn't;
         # you need an API key to use this module
@@ -44,9 +44,11 @@ class WeatherModule(Module):
                     "forecast_length", "api_key"]:
             try:
                 setattr(self, key, config.get("weather", key))
+                _log.debug("Set {} to {} from config.".format(key, getattr(self, key)))
             except NoOptionError:
                 setattr(self, key, defaults[key])
-
+                _log.debug("Set {} to {} from defaults.".format(key, getattr(self, key)))
+        self.forecast_length = int(self.forecast_length);
 
     @Module.handle('PRIVMSG')
     def tell_weather(self, client, actor, recipient, message):
@@ -115,7 +117,9 @@ class WeatherModule(Module):
                 location = parsed_json['current_observation']['display_location']['full']
         else:
             return "Sorry, I don't know where that is."
+        _log.debug("Forecast length setting is {}, got data for {} hours.".format(self.forecast_length, len(parsed_json['hourly_forecast'])))
         self.forecast_length = min(self.forecast_length, len(parsed_json['hourly_forecast']) - 2)
+        _log.debug("Generating {}-hour forecast.".format(self.forecast_length))
 
         if not randrange(100):
             return "The {}-hour forecast for {} is your face.".format(self.forecast_length, location)
