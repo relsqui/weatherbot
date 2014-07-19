@@ -16,13 +16,14 @@ from kitnirc.modular import Module
 _log = getLogger(__name__)
 
 defaults = {
-        "default_location_ID": "94709",
-        "default_location_name": "home",
-        "forecast_length": 12,
-        # this won't work if it remains default, but it shouldn't;
-        # you need an API key to use this module
-        "api_key": 0
+    "default_location_ID": "94709",
+    "default_location_name": "home",
+    "forecast_length": 12,
+    # this won't work if it remains default, but it shouldn't;
+    # you need an API key to use this module
+    "api_key": 0
 }
+
 
 def time_name(time):
     if time == "12:00 AM":
@@ -30,6 +31,7 @@ def time_name(time):
     if time == "12:00 PM":
         return "noon"
     return time
+
 
 class WeatherModule(Module):
     def __init__(self, *args, **kwargs):
@@ -44,11 +46,13 @@ class WeatherModule(Module):
                     "forecast_length", "api_key"]:
             try:
                 setattr(self, key, config.get("weather", key))
-                _log.debug("Set {} to {} from config.".format(key, getattr(self, key)))
+                log_string = "Set {} to {} from config."
+                _log.debug(log_string.format(key, getattr(self, key)))
             except NoOptionError:
                 setattr(self, key, defaults[key])
-                _log.debug("Set {} to {} from defaults.".format(key, getattr(self, key)))
-        self.forecast_length = int(self.forecast_length);
+                log_string = "Set {} to {} from defaults."
+                _log.debug(log_string.format(key, getattr(self, key)))
+        self.forecast_length = int(self.forecast_length)
 
     @Module.handle('PRIVMSG')
     def tell_weather(self, client, actor, recipient, message):
@@ -57,7 +61,7 @@ class WeatherModule(Module):
             if message.startswith(client.user.nick):
                 message = message.split(None, 1)[1]
             elif message.startswith("!rollcall"):
-                client.reply(recipient, actor, "Meow!");
+                client.reply(recipient, actor, "Meow!")
                 return
             elif message.startswith("!weather"):
                 pass
@@ -66,7 +70,12 @@ class WeatherModule(Module):
                 return
 
         if message.startswith("help"):
-            client.reply(recipient, actor, "I'm very simple! Just say !weather to get a summary of the {}-hour forecast for {}, or !weather <location> for another city, ZIP, etc.".format(self.forecast_length, self.default_location_name))
+            client.reply(recipient, actor,
+                         "I'm very simple! Just say !weather to get "
+                         "a summary of the {}-hour forecast for {}, or "
+                         "!weather <location> for another city, ZIP, "
+                         "etc.".format(self.forecast_length,
+                                       self.default_location_name))
             return
 
         if message.startswith("!weather"):
@@ -80,15 +89,16 @@ class WeatherModule(Module):
 
         client.reply(recipient, actor, self.get_forecast(where))
 
-
     def get_forecast(self, location):
         if location:
             url_location = quote(location)
         else:
             url_location = self.default_location_ID
             location = self.default_location_name
-        url = "http://api.wunderground.com/api/{}/conditions/hourly/q/{}.json".format(self.api_key, url_location)
-        _log.info("Looking up the weather in {} ({}).".format(url_location, location))
+        url = "http://api.wunderground.com/api/{}/conditions/hourly/q/{}.json"
+        url = url.format(self.api_key, url_location)
+        _log.info("Looking up the weather in {} ({}).".format(url_location,
+                                                              location))
         _log.debug("Query URL is {}".format(url))
         f = urlopen(url)
         json_string = f.read()
@@ -98,7 +108,7 @@ class WeatherModule(Module):
         temperatures = {}
         conditions = []
         types = []
-        if parsed_json["response"].has_key("results"):
+        if "results" in parsed_json["response"]:
             # There was more than one location.
             choices = []
             for city in parsed_json["response"]["results"]:
@@ -108,22 +118,30 @@ class WeatherModule(Module):
                     region = city["country_name"]
                 choices.append("{}, {}".format(city["city"], region))
             choice_string = " / ".join(choices)
-            return "I don't know which one you mean. Maybe one of these? " + choice_string
-        elif parsed_json.has_key("hourly_forecast"):
+            reply = "I don't know which one you mean. Maybe one of these? "
+            return reply + choice_string
+        elif "hourly_forecast" in parsed_json:
             try:
                 next_forecast = parsed_json['hourly_forecast'][0]
             except ValueError:
-                return "Hmm, I didn't get well-formed data from my API. Please give me a few minutes and try again. Sorry about that."
+                return ("Hmm, I didn't get well-formed data from my API. "
+                        "Please give me a few minutes and try again. "
+                        "Sorry about that.")
             if url_location != self.default_location_ID:
-                location = parsed_json['current_observation']['display_location']['full']
+                loc = parsed_json['current_observation']['display_location']
+                location = loc['full']
         else:
             return "Sorry, I don't know where that is."
-        _log.debug("Forecast length setting is {}, got data for {} hours.".format(self.forecast_length, len(parsed_json['hourly_forecast'])))
-        self.forecast_length = min(self.forecast_length, len(parsed_json['hourly_forecast']) - 2)
+        log_string = "Forecast length setting is {}, got data for {} hours."
+        _log.debug(log_string.format(self.forecast_length,
+                                     len(parsed_json['hourly_forecast'])))
+        self.forecast_length = min(self.forecast_length,
+                                   len(parsed_json['hourly_forecast']) - 2)
         _log.debug("Generating {}-hour forecast.".format(self.forecast_length))
 
         if not randrange(100):
-            return "The {}-hour forecast for {} is your face.".format(self.forecast_length, location)
+            reply = "The {}-hour forecast for {} is your face."
+            return reply.format(self.forecast_length, location)
 
         for hour in xrange(self.forecast_length):
             forecast = next_forecast
@@ -147,16 +165,35 @@ class WeatherModule(Module):
             conditions.append(condition)
 
         unique_types = list(set(types))
-        if len(types) >= 4 and len(set(types)) == 2:
-            condition_string = "The {}-hour forecast for {} is intermittently {} and {}.".format(self.forecast_length, location, unique_types[0], unique_types[1])
+        if len(types) >= 4 and len(unique_types) == 2:
+            condition_string = ("The {}-hour forecast for {} is "
+                                "intermittently {} and {}.")
+            condition_string = condition_string.format(self.forecast_length,
+                                                       location,
+                                                       unique_types[0],
+                                                       unique_types[1])
         elif len(conditions) < 4:
-            condition_string = "The {}-hour forecast for {} is {}.".format(self.forecast_length, location, ", then ".join(conditions))
+            condition_string = "The {}-hour forecast for {} is {}."
+            condition_substring = ", then ".join(conditions)
+            condition_string = condition_string.format(self.forecast_length,
+                                                       location,
+                                                       condition_substring)
         else:
-            condition_string = "The {}-hour forecast for {} is {}, then {}.".format(self.forecast_length, location, ", ".join(conditions[:-1]), conditions[-1])
+            condition_string = "The {}-hour forecast for {} is {}, then {}."
+            condition_substring = ", ".join(conditions[:-1])
+            condition_string = condition_string.format(self.forecast_length,
+                                                       location,
+                                                       condition_substring,
+                                                       conditions[-1])
 
         high = max(map(lambda x: int(x), temperatures))
         low = min(map(lambda x: int(x), temperatures))
-        temperature_string = "High is {} degrees at {}. Low is {} degrees at {}.".format(high, temperatures[str(high)], low, temperatures[str(low)])
+        temperature_string = ("High is {} degrees at {}. "
+                              "Low is {} degrees at {}.")
+        temperature_string = temperature_string.format(high,
+                                                       temperatures[str(high)],
+                                                       low,
+                                                       temperatures[str(low)])
 
         return " ".join([condition_string, temperature_string])
 
