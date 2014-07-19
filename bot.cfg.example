@@ -21,7 +21,7 @@ kitnweather = 4
 
 [admins]
 # change this to your nick!user@host (and others, if you like)
-mynick!notroot@myhost.com
+mynick@myhost.com
 
 [channels]
 # change this to a list of channels to autojoin, if any
