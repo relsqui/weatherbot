@@ -152,7 +152,7 @@ class WeatherModule(Module):
             next_time = time_name(next_forecast['FCTTIME']['civil'])
             if condition != next_condition:
                 conditions.append("{} until {}".format(condition, next_time))
-            types.append(condition)
+                types.append(condition)
 
             time = time_name(forecast['FCTTIME']['civil'])
             temperature = forecast['temp']['english']
