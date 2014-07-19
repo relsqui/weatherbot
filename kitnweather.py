@@ -97,6 +97,7 @@ class WeatherModule(Module):
 
         temperatures = {}
         conditions = []
+        types = []
         if parsed_json["response"].has_key("results"):
             # There was more than one location.
             choices = []
@@ -133,6 +134,7 @@ class WeatherModule(Module):
             next_time = time_name(next_forecast['FCTTIME']['civil'])
             if condition != next_condition:
                 conditions.append("{} until {}".format(condition, next_time))
+            types.append(condition)
 
             time = time_name(forecast['FCTTIME']['civil'])
             temperature = forecast['temp']['english']
@@ -144,7 +146,10 @@ class WeatherModule(Module):
         if not len(conditions) or not conditions[-1].startswith(condition):
             conditions.append(condition)
 
-        if len(conditions) < 4:
+        unique_types = list(set(types))
+        if len(types) >= 4 and len(set(types)) == 2:
+            condition_string = "The {}-hour forecast for {} is intermittently {} and {}.".format(self.forecast_length, location, unique_types[0], unique_types[1])
+        elif len(conditions) < 4:
             condition_string = "The {}-hour forecast for {} is {}.".format(self.forecast_length, location, ", then ".join(conditions))
         else:
             condition_string = "The {}-hour forecast for {} is {}, then {}.".format(self.forecast_length, location, ", ".join(conditions[:-1]), conditions[-1])
