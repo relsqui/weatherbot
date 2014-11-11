@@ -56,6 +56,7 @@ class WeatherModule(Module):
 
     @Module.handle('PRIVMSG')
     def tell_weather(self, client, actor, recipient, message):
+        message = message.strip()
         if str(recipient) != client.user.nick:
             # This was in a channel, not a PM. Was it to us?
             if message.startswith(client.user.nick):
@@ -165,7 +166,7 @@ class WeatherModule(Module):
             conditions.append(condition)
 
         unique_types = list(set(types))
-        if len(types) >= 4 and len(unique_types) == 2:
+        if len(types) >= 3 and len(unique_types) == 2:
             condition_string = ("The {}-hour forecast for {} is "
                                 "intermittently {} and {}.")
             condition_string = condition_string.format(self.forecast_length,
