@@ -119,10 +119,20 @@ class WeatherModule(Module):
                 else:
                     region = city["country_name"]
                 choices.append("{}, {}".format(city["city"], region))
-            choice_string = " / ".join(choices)
-            reply = "I don't know which one you mean. Maybe one of these? "
-            return reply + choice_string
-        elif "hourly_forecast" in parsed_json:
+            if len(set(choices)) == 1:
+                _log.info("Found multiple locations named {}; picking one.".format(choices[0]))
+                _log.debug("Query URL is {}".format(url))
+                url = "http://api.wunderground.com/api/{}/conditions/hourly{}.json"
+                url = url.format(self.api_key, parsed_json["response"]["results"][0]["l"])
+                f = urlopen(url)
+                json_string = f.read()
+                f.close
+                parsed_json = loads(json_string)
+            else:
+                choice_string = " / ".join(list(set(choices)))
+                reply = "I don't know which one you mean. Maybe one of these? "
+                return reply + choice_string
+        if "hourly_forecast" in parsed_json:
             try:
                 next_forecast = parsed_json['hourly_forecast'][0]
             except ValueError:
