@@ -109,7 +109,8 @@ class WeatherModule(Module):
         temperatures = {}
         conditions = []
         types = []
-        if "results" in parsed_json["response"]:
+        max_wind = (0, None, None)
+        while "results" in parsed_json["response"]:
             # There was more than one location.
             choices = []
             for city in parsed_json["response"]["results"]:
@@ -144,6 +145,7 @@ class WeatherModule(Module):
             reply = "The {}-hour forecast for {} is your face."
             return reply.format(self.forecast_length, location)
 
+
         for hour in xrange(self.forecast_length):
             forecast = next_forecast
             next_forecast = parsed_json['hourly_forecast'][hour+1]
@@ -159,6 +161,10 @@ class WeatherModule(Module):
             temperature = forecast['temp']['english']
             if temperature not in temperatures:
                 temperatures[temperature] = time
+
+            wind_speed = forecast['wspd']['english']
+            if (wind_speed > max_wind[0]):
+                max_wind = (wind_speed, forecast['wdir']['dir'], time)
 
             # print "{}   {}".format(time, condition)
 
@@ -196,6 +202,11 @@ class WeatherModule(Module):
                                                        low,
                                                        temperatures[str(low)])
 
-        return " ".join([condition_string, temperature_string])
+        if (max_wind[0]):
+            wind_string = "Wind from the {}, peaking at {}mph at {}.".format(max_wind[1], max_wind[0], max_wind[2])
+        else:
+            wind_string = "No wind."
+
+        return " ".join([condition_string, temperature_string, wind_string])
 
 module = WeatherModule
