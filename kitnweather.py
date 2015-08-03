@@ -66,6 +66,8 @@ class WeatherModule(Module):
                 return
             elif message.startswith("!weather"):
                 pass
+            elif message.startswith("!whether"):
+                client.emote(recipient, "blinks helplessly.")
             else:
                 # Nope.
                 return
