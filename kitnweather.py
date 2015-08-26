@@ -81,6 +81,10 @@ class WeatherModule(Module):
                                        self.default_location_name))
             return
 
+        if message.startswith("source"):
+            client.reply(recipient, actor, "https://github.com/relsqui/weatherbot")
+            return
+
         if message.startswith("!weather"):
             try:
                 where = message.split(None, 1)[1]
